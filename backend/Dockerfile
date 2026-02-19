@@ -18,4 +18,7 @@ COPY ./base_requirements.txt ./base_requirements.txt
 
 RUN python -m pip install -r base_requirements.txt --no-cache-dir
 
+# Developer tools: ruff (linter/formatter) and black (formatter)
+RUN python -m pip install --no-cache-dir ruff black
+
 CMD ["tail", "-f", "/dev/null"]
