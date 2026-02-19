@@ -3,8 +3,6 @@ from typing import Callable
 
 from src.models.schemas import AlgorithmParamsBaseModel
 
-from . import *  # noqa: F403
-
 
 class BaseAlgorithmException(Exception):
     """Базовый класс для ошибок алгоритмов обработки данных."""
@@ -131,3 +129,9 @@ class AlgorithmAbstractFactory:
             return algorithm_cls
 
         return decorator
+
+
+from .raster_transform import RasterTransformAlgorithm  # noqa: E402, F401
+from .vector_transform import (  # type: ignore # noqa: E402, F401
+    VectorTransformAlgorithm,  # noqa: E402, F401
+)
