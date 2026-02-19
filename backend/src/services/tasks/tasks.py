@@ -1,9 +1,9 @@
 import uuid
 
 from sqlalchemy.orm import Session
-from src.models.orm_models import Task, TaskStateEnum
 
-from .algorithms import BaseAlgorithm
+from src.models.orm_models import Task, TaskStateEnum
+from src.services.algorithms import BaseAlgorithm
 
 
 class TaskServiceError(Exception):
@@ -47,7 +47,7 @@ class TaskService:
 
         task = Task(
             id=uuid.uuid4(),
-            algorithm=algorithm.name(),
+            algorithm=algorithm.name,
             params=algorithm._params.model_dump(),
             input_file_id=input_file_id,
             status=TaskStateEnum.PENDING,
