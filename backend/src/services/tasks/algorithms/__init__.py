@@ -131,6 +131,7 @@ class AlgorithmAbstractFactory:
         return decorator
 
 
+from .raster_rescale import RasterRescaleAlgorithm  # type: ignore  # noqa: E402, F401
 from .raster_transform import RasterTransformAlgorithm  # noqa: E402, F401
 from .vector_transform import (  # type: ignore # noqa: E402, F401
     VectorTransformAlgorithm,  # noqa: E402, F401
