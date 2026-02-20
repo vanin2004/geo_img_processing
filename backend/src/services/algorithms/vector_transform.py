@@ -1,7 +1,8 @@
 from typing import override
 
-from osgeo import gdal
+from osgeo import gdal  # pyright: ignore[reportMissingImports]
 from pydantic import Field
+
 from src.models.schemas import AlgorithmParamsBaseModel
 
 from . import AlgorithmAbstractFactory, BaseAlgorithm
