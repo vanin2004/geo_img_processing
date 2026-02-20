@@ -21,7 +21,7 @@ class VectorTransformAlgorithmParams(AlgorithmParamsBaseModel):
 
 
 @AlgorithmAbstractFactory.register_algorithm("VECTOR_TRANSFORM")
-class VectorTransformAlgorithm(BaseAlgorithm):
+class VectorTransformAlgorithm(BaseAlgorithm[VectorTransformAlgorithmParams]):
     """Алгоритм для трансформации векторных данных."""
 
     def print_metadata(self, dataset: gdal.Dataset):
@@ -37,7 +37,12 @@ class VectorTransformAlgorithm(BaseAlgorithm):
         )
 
     @override
-    def run(self, input_file_bytes: bytes, file_ext: str) -> bytes:
+    def run(
+        self,
+        input_file_bytes: bytes,
+        file_ext: str,
+        params: VectorTransformAlgorithmParams,
+    ) -> bytes:
         """Трансформирует растровые данные.
 
         Args:
@@ -46,8 +51,8 @@ class VectorTransformAlgorithm(BaseAlgorithm):
             bytes: Байтовое представление выходного файла.
         """
 
-        s_srs = self._params.s_srs  # type: ignore[attr-defined]
-        srs_def = self._params.srs_def  # type: ignore[attr-defined]
+        s_srs = params.s_srs
+        srs_def = params.srs_def
 
         gdal.FileFromMemBuffer(f"/vsimem/in.{file_ext}", input_file_bytes)
 

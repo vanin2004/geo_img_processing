@@ -34,23 +34,16 @@ class RasterRescaleAlgorithmParams(AlgorithmParamsBaseModel):
 
 
 @AlgorithmAbstractFactory.register_algorithm("RASTER_RESCALE")
-class RasterRescaleAlgorithm(BaseAlgorithm):
+class RasterRescaleAlgorithm(BaseAlgorithm[RasterRescaleAlgorithmParams]):
     """Алгоритм для изменения разрешения растровых данных."""
 
-    def print_metadata(self, dataset: gdal.Dataset):
-        """Выводит базовую метадату растрового изображения."""
-        print("Basic metadata")
-        # print("Bands count: %s" % dataset.RasterCount)
-        # print("Data type: %s" % dataset.GetRasterBand(1).DataType)
-        # print("Rows: %s | Cols: %s" % (dataset.RasterYSize, dataset.RasterXSize))
-        # print("GeoTransform: %s" % str(dataset.GetGeoTransform()))
-        print(
-            "Coordinate reference system: %s"
-            % dataset.GetProjection()[-len('  AUTHORITY["EPSG","4326"]') :]
-        )
-
     @override
-    def run(self, input_file_bytes: bytes, file_ext: str) -> bytes:
+    def run(
+        self,
+        input_file_bytes: bytes,
+        file_ext: str,
+        params: RasterRescaleAlgorithmParams,
+    ) -> bytes:
         """Трансформирует растровые данные.
 
         Args:
@@ -59,8 +52,8 @@ class RasterRescaleAlgorithm(BaseAlgorithm):
             bytes: Байтовое представление выходного файла.
         """
 
-        xres = self._params.xres  # type: ignore[attr-defined]
-        yres = self._params.yres  # type: ignore[attr-defined]
+        xres = params.xres
+        yres = params.yres
         # square = self._params.square  # type: ignore[attr-defined]
 
         gdal.FileFromMemBuffer(f"/vsimem/in.{file_ext}", input_file_bytes)
@@ -79,8 +72,6 @@ class RasterRescaleAlgorithm(BaseAlgorithm):
         gdal.VSIFCloseL(f)
 
         in_ds: gdal.Dataset = gdal.Open(f"/vsimem/in.{file_ext}")
-        self.print_metadata(in_ds)
-        self.print_metadata(out_ds)
 
         # cleanup
         gdal.Unlink(f"/vsimem/in.{file_ext}")

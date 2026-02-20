@@ -21,23 +21,16 @@ class RasterTransformAlgorithmParams(AlgorithmParamsBaseModel):
 
 
 @AlgorithmAbstractFactory.register_algorithm("RASTER_TRANSFORM")
-class RasterTransformAlgorithm(BaseAlgorithm):
+class RasterTransformAlgorithm(BaseAlgorithm[RasterTransformAlgorithmParams]):
     """Алгоритм для трансформации растровых данных."""
 
-    def print_metadata(self, dataset: gdal.Dataset):
-        """Выводит базовую метадату растрового изображения."""
-        print("Basic metadata")
-        # print("Bands count: %s" % dataset.RasterCount)
-        # print("Data type: %s" % dataset.GetRasterBand(1).DataType)
-        # print("Rows: %s | Cols: %s" % (dataset.RasterYSize, dataset.RasterXSize))
-        # print("GeoTransform: %s" % str(dataset.GetGeoTransform()))
-        print(
-            "Coordinate reference system: %s"
-            % dataset.GetProjection()[-len('  AUTHORITY["EPSG","4326"]') :]
-        )
-
     @override
-    def run(self, input_file_bytes: bytes, file_ext: str) -> bytes:
+    def run(
+        self,
+        input_file_bytes: bytes,
+        file_ext: str,
+        params: RasterTransformAlgorithmParams,
+    ) -> bytes:
         """Трансформирует растровые данные.
 
         Args:
@@ -46,8 +39,8 @@ class RasterTransformAlgorithm(BaseAlgorithm):
             bytes: Байтовое представление выходного файла.
         """
 
-        s_srs = self._params.s_srs  # type: ignore[attr-defined]
-        srs_def = self._params.srs_def  # type: ignore[attr-defined]
+        s_srs = params.s_srs
+        srs_def = params.srs_def
 
         gdal.FileFromMemBuffer(f"/vsimem/in.{file_ext}", input_file_bytes)
 
@@ -65,8 +58,6 @@ class RasterTransformAlgorithm(BaseAlgorithm):
         gdal.VSIFCloseL(f)
 
         in_ds: gdal.Dataset = gdal.Open(f"/vsimem/in.{file_ext}")
-        self.print_metadata(in_ds)
-        self.print_metadata(out_ds)
 
         # cleanup
         gdal.Unlink(f"/vsimem/in.{file_ext}")

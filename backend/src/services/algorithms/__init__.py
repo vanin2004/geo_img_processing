@@ -1,22 +1,25 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Generic, TypeVar
 
 from src.models.schemas import AlgorithmParamsBaseModel
 
 
-class BaseAlgorithmException(Exception):
+class BaseAlgorithmError(Exception):
     """Базовый класс для ошибок алгоритмов обработки данных."""
 
 
-class AlgorithmValidationError(BaseAlgorithmException):
+class AlgorithmValidationError(BaseAlgorithmError):
     """Ошибка валидации параметров алгоритма."""
 
 
-class AlgorithmExecutionError(BaseAlgorithmException):
+class AlgorithmExecutionError(BaseAlgorithmError):
     """Ошибка выполнения алгоритма."""
 
 
-class BaseAlgorithm(ABC):
+T = TypeVar("T", bound=AlgorithmParamsBaseModel)
+
+
+class BaseAlgorithm(ABC, Generic[T]):
     """Базовый класс для алгоритмов обработки геопространственных данных."""
 
     _name = "BASE_ALGORITHM"
@@ -30,16 +33,8 @@ class BaseAlgorithm(ABC):
         """
         return cls._name
 
-    def __init__(self, params: dict):
-        """Инициализирует алгоритм с заданными параметрами."""
-
-        try:
-            self._params = self.get_pydantic_model().model_validate(params)
-        except Exception as e:
-            raise AlgorithmValidationError(f"Invalid parameters for {self.name()}: {e}")
-
     @abstractmethod
-    def run(self, input_file_bytes: bytes, file_ext: str) -> bytes:
+    def run(self, input_file_bytes: bytes, file_ext: str, params: T) -> bytes:
         """Запускает алгоритм обработки данных.
 
         Args:
@@ -56,7 +51,7 @@ class BaseAlgorithm(ABC):
 
     @classmethod
     @abstractmethod
-    def get_pydantic_model(cls) -> type[AlgorithmParamsBaseModel]:
+    def get_pydantic_model(cls) -> type[T]:
         """Возвращает Pydantic-модель для валидации параметров алгоритма.
 
         Returns:
@@ -76,7 +71,7 @@ class AlgorithmAbstractFactory:
     ] = {}
 
     @classmethod
-    def get_algorithm(cls, name: str, params: dict) -> BaseAlgorithm:
+    def get_algorithm(cls, name: str) -> BaseAlgorithm:
         """Возвращает экземпляр алгоритма по его названию.
 
         Args:
@@ -93,20 +88,20 @@ class AlgorithmAbstractFactory:
         if name not in cls.registry:
             raise ValueError(f"Алгоритм с именем '{name}' не найден.")
         try:
-            algorithm = cls.registry[name](params=params)
+            algorithm = cls.registry[name]()
         except Exception:
             raise ValueError(f"Ошибка при создании экземпляра алгоритма '{name}'.")
 
         return algorithm
 
     @classmethod
-    def list_algorithms(cls) -> list[str]:
+    def list_algorithms(cls) -> list[type[BaseAlgorithm]]:
         """Возвращает список названий всех зарегистрированных алгоритмов.
 
         Returns:
-            list[str]: Список названий алгоритмов.
+            list[type[BaseAlgorithm]]: Список классов алгоритмов.
         """
-        return list(cls.registry.keys())
+        return list(cls.registry.values())
 
     @classmethod
     def register_algorithm(
