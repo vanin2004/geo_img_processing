@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     file_storage_timeout: int = 30
 
     # Настройки подключения к БД
-    database_url: str = "postgresql+://postgres:postgres@db/img_processing"
+    database_url: str = "postgresql+psycopg2://postgres:postgres@db/img_processing"
     db_retries: int = 5
     db_retry_delay: int = 2
 
