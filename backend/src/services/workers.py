@@ -32,32 +32,31 @@ class AlgorithmExecutionError(WorkerServiceError):
 class WorkerService:
     def __init__(
         self,
-        task_id: uuid.UUID,
         db: Session,
         file_service: FileService,
     ):
-        self._task_id = task_id
         self._db = db
         self._file_service = file_service
 
-    def run(self) -> None:
+    def run(self, task_id: uuid.UUID) -> None:
         """Запускает выполнение алгоритма обработки данных."""
-        task = self._db.get(Task, self._task_id)
+        task = self._db.get(Task, task_id)
         if task is None:
-            raise TaskNotFoundError(f"Task with id {self._task_id} not found.")
-
+            raise TaskNotFoundError(f"Task with id {task_id} not found.")
         task.state = TaskStateEnum.RUNNING
         task.datetime_start = datetime.now(timezone.utc)
         self._db.commit()
 
         try:
-            params = task.params or {}
-            algorithm = AlgorithmAbstractFactory.get_algorithm(task.algorithm, params)
+            algorithm = AlgorithmAbstractFactory.get_algorithm(task.algorithm)
+            params = algorithm.get_pydantic_model().model_validate(task.params)
 
             file_meta = self._file_service.get_file_meta(task.input_file_id)
             file_bytes = self._file_service.get_file(task.input_file_id)
 
-            output_bytes = algorithm.run(file_bytes, file_ext=file_meta.file_extension)
+            output_bytes = algorithm.run(
+                file_bytes, file_ext=file_meta.file_extension, params=params
+            )
 
             file_name = f"processed_{file_meta.filename}"
             file_extension = file_meta.file_extension
@@ -70,7 +69,7 @@ class WorkerService:
                 file_content=output_bytes,
                 comment=(
                     f"Processed file: {file_meta.filename}\n"
-                    f"uuid: {file_meta.uuid}\nalgorithm: {algorithm.name()}\nparams: {algorithm._params.model_dump()}"
+                    f"uuid: {file_meta.uuid}\nalgorithm: {algorithm.name()}\nparams: {params.model_dump()}"
                 ),
             )
 

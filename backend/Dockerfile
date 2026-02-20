@@ -7,18 +7,17 @@ RUN apt-get update \
 	   python3-venv python3-pip python3-dev build-essential \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m venv /opt/venv
+RUN python3 -m venv /opt/venv --system-site-packages
 ENV PATH="/opt/venv/bin:$PATH"
 
 RUN python -m pip install --upgrade pip setuptools wheel
 
 WORKDIR /backend
 
-COPY ./base_requirements.txt ./base_requirements.txt
+COPY ./requirements.txt ./requirements.txt
 
-RUN python -m pip install -r base_requirements.txt --no-cache-dir
+RUN python -m pip install -r requirements.txt --no-cache-dir
 
-# Developer tools: ruff (linter/formatter) and black (formatter)
-RUN python -m pip install --no-cache-dir ruff black
+COPY . .
 
-CMD ["tail", "-f", "/dev/null"]
+CMD ["python3", "-m", "src.app"]
