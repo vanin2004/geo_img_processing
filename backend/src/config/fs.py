@@ -5,4 +5,4 @@ from .config_base import ipConfig
 
 @dataclass
 class FsConfig(ipConfig):
-    pass
+    timeout_seconds: int = 30

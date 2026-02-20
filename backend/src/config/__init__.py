@@ -9,7 +9,11 @@ pg_config = PgConfig(
     retry_delay_sec=settings.db_retry_delay,
     debug_mode=settings.debug,
 )
-fs_config = FsConfig(host=settings.file_storage_host, port=settings.file_storage_port)
+fs_config = FsConfig(
+    host=settings.file_storage_host,
+    port=settings.file_storage_port,
+    timeout_seconds=settings.file_storage_timeout,
+)
 fastapi_config = FastAPIConfig(
     host=settings.app_host,
     port=settings.app_port,

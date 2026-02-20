@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     # Настройки файлового хранилища
     file_storage_host: str = "http://localhost"
     file_storage_port: int = 9000
+    file_storage_timeout: int = 30
 
     # Настройки подключения к БД
     database_url: str = "postgresql+://postgres:postgres@db/img_processing"

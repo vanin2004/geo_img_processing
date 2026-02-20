@@ -39,19 +39,19 @@ class FileService:
 
     def __init__(
         self,
-        base_url: str,
+        host: str,
         session: requests.Session | None = None,
         timeout_seconds: int = 30,
         port: int | None = None,
     ):
-        self.base_url = base_url.rstrip("/")
+        self._host = host.rstrip("/")
         if port is not None:
-            self.base_url += f":{port}"
-        self.session = session or requests.Session()
-        self.timeout = timeout_seconds
+            self._host += f":{port}"
+        self._session = session or requests.Session()
+        self._timeout = timeout_seconds
 
     def _url(self, path: str) -> str:
-        return f"{self.base_url}{path}"
+        return f"{self._host}{path}"
 
     def _raise(self, resp: requests.Response) -> None:
         if resp.status_code == 409:
@@ -81,8 +81,8 @@ class FileService:
         if comment is not None:
             data["comment"] = comment
 
-        resp = self.session.post(
-            self._url("/files"), files=files, data=data, timeout=self.timeout
+        resp = self._session.post(
+            self._url("/files"), files=files, data=data, timeout=self._timeout
         )
         self._raise(resp)
         response_data: Dict[str, Any] = resp.json()
@@ -93,20 +93,20 @@ class FileService:
         return FileMeta(**response_data)
 
     def get_file_meta(self, file_id: str) -> FileMeta:
-        resp = self.session.get(
-            self._url(f"/files/{file_id}/meta"), timeout=self.timeout
+        resp = self._session.get(
+            self._url(f"/files/{file_id}/meta"), timeout=self._timeout
         )
         self._raise(resp)
         return FileMeta(**resp.json())
 
     def get_file(self, file_id: str) -> bytes:
-        resp = self.session.get(self._url(f"/files/{file_id}"), timeout=self.timeout)
+        resp = self._session.get(self._url(f"/files/{file_id}"), timeout=self._timeout)
         self._raise(resp)
         return resp.content
 
 
 if __name__ == "__main__":
-    file_service = FileService(base_url="http://localhost:8000")
+    file_service = FileService(host="http://localhost:8000")
     file_content = b"file filler"
     response = file_service.post_file(
         filename="example",
