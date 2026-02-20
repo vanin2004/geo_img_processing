@@ -3,7 +3,8 @@ import uuid
 from sqlalchemy.orm import Session
 
 from src.models.orm_models import Task, TaskStateEnum
-from src.services.algorithms import BaseAlgorithm
+from src.models.schemas import AlgorithmParamsBaseModel
+from src.services import BaseAlgorithm
 
 
 class TaskServiceError(Exception):
@@ -32,6 +33,7 @@ class TaskService:
         self,
         algorithm: BaseAlgorithm,
         input_file_id: str,
+        params: AlgorithmParamsBaseModel,
         output_file_full_path: str | None = None,
     ) -> Task:
         """Создает новую задачу обработки данных.
@@ -47,10 +49,10 @@ class TaskService:
 
         task = Task(
             id=uuid.uuid4(),
-            algorithm=algorithm.name,
-            params=algorithm._params.model_dump(),
+            algorithm=algorithm.name(),
+            params=params.model_dump(),
             input_file_id=input_file_id,
-            status=TaskStateEnum.PENDING,
+            state=TaskStateEnum.PENDING,
             output_file_full_path=output_file_full_path,
         )
         self._db.add(task)
